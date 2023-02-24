@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Joining Datasets with Speed and Style</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Beniamino Green" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <meta name="description" content="Joining Datasets with Speed and Style"/>
+    <meta name="github-repo" content="beniamonogreen/zoomerjoin"/>
+    <meta name="twitter:title" content="Joining Datasets with Speed and Style"/>
+    <meta name="twitter:description" content="Joining Datasets with Speed and Style"/>
+    <meta name="twitter:card" content="summary"/>
+    <meta property="og:title" content="Joining Datasets with Speed and Style"/>
+    <meta property="og:description" content="Joining Datasets with Speed and Style"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:locale" content="en_US"/>
+    <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view/tile-view.js"></script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <script src="libs/clipboard/clipboard.min.js"></script>
+    <link href="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.js"></script>
+    <script>window.xaringanExtraClipboard(null, {"button":"Copy Code","success":"Copied!","error":"Press Ctrl+C to Copy"})</script>
+    <link href="libs/shareon/shareon.min.css" rel="stylesheet" />
+    <script src="libs/shareon/shareon.min.js"></script>
+    <link href="libs/xaringanExtra-shareagain/shareagain.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-shareagain/shareagain.js"></script>
+    <link href="libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/lexis.css" type="text/css" />
+    <link rel="stylesheet" href="css/lexis-fonts.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+
+
+
+
+
+
+layout: true
+
+&lt;!-- this adds the link footer to all slides, depends on footer-small class in css--&gt;
+
+&lt;div class="footer-small"&gt;&lt;span&gt;https://github.com/beniaminogreen/zoomerjoin&lt;/span&gt;&lt;/div&gt;
+
+---
+name: title-slide
+class: title-slide, center, middle, inverse
+
+# Joining Datasets with Speed and Style
+#.fancy[]
+
+&lt;br&gt;
+
+.large[ Beniamino Green ]
+
+
+---
+
+### Setting - U.S. Voter Data:
+
+.leftcol[
+
+#### Dataset 1:
+
+| First Name  | Last Name |
+| ----------- | ----------- |
+| Beniamino   | Green       |
+| Lucas       | Marron      |
+| Florian     | Caro        |
+| ...         | ...        |
+
+]
+.rightcol[
+
+#### Dataset 2 (Misspellings):
+
+| First Name  | Last Name |
+| ----------- | --------- |
+| Benjamino   | Greene    |
+| Luca        | Marron    |
+| Florian     | Claro     |
+| ...         | ...        |
+
+]
+
+
+####  Some Issues:
+
+No unique identifying field to match on
+
+Also, there are 300 million rows in each dataset
+
+---
+
+### Matching using Popular Fuzzy-Matching Package:
+
+&lt;img src="figs/unnamed-chunk-2-1.png" width="792" style="display: block; margin: auto;" /&gt;
+
+---
+
+### How Long Will This Take?
+
+
+```r
+model &lt;- lm(time ~ n + I(n^2), data = benchmark_data)
+
+n &lt;- 300*10^6
+time &lt;- as.numeric(coef(model) %*% c(1,n,n^2))
+time
+```
+
+```
+#&gt; [1] 8874362204
+```
+--
+
+How many years?
+
+
+```r
+seconds_to_years(time)
+```
+
+```
+#&gt; [1] 281.2116
+```
+--
+
+Worse than it seems, because the program runs out of memory when the dataset are larger than 20000.
+
+--
+
+---
+
+# Can we do better?
+
+## .center[Yes!]
+
+---
+
+### Takeaways:
+
+#### Using this method can I join datasets with tens of millions of observations?
+
+--
+
+*  Yes
+
+--
+
+#### Does it rely on specialized methods that work only on names or addresses?
+
+--
+
+* No, it works for any kind of string.
+
+---
+
+### Takeaways:
+
+#### Do I have to specify, a priori, which units might match to each other?
+
+--
+
+* No, but if you would like to, you can.
+
+--
+
+#### Does it give probabilistic guarantees on the number of missed matches?
+
+--
+
+* Yes! And the number of discarded matches can be controlled with a hyperparamater.
+
+---
+
+### Takeaways:
+
+#### Is this too good to be true?
+
+--
+
+* No, this is a tested a record-linkage strategy used in CS from the 90's (Broder (1997))
+    (Leskovec, Rajaraman, and Ullman (2014))
+
+--
+
+#### Sounds Great! Do I have to code it up myself?
+
+--
+
+* No! There's a performant, parallel, dplyr-style implementation available online today!
+
+---
+
+
+### Mathing: What's going on?
+
+
+##### Dataset of Size 20:
+
+.border[
+&lt;img src="figs/unnamed-chunk-5-1.png" width="792" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+
+### What's Going on?
+
+##### Dataset of Size 50:
+
+.border[
+&lt;img src="figs/unnamed-chunk-6-1.png" width="792" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+### What's Going on?
+
+
+##### Dataset of Size 100:
+
+
+.border[
+&lt;img src="figs/unnamed-chunk-7-1.png" width="792" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+
+### What's Going on?
+
+##### Dataset of Size 200:
+
+.border[
+&lt;img src="figs/unnamed-chunk-8-1.png" width="792" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+### The issue:
+
+Every observation in Dataset A has to compared to every observation in Dataset B.
+
+Runtime scales with the product of the rows in both datasets ( `\(\mathbb{O}(nm)\)` )
+
+---
+
+### One Approach: Blocking:
+
+.leftcol[
+.border[
+&lt;img src="figs/unnamed-chunk-9-1.png" width="432" style="display: block; margin: auto;" /&gt;
+]
+]
+
+--
+
+.rightcol[
+
+* Subdivide the problem into smaller matching problems
+
+* User has to specify which pairs should be considered
+
+]
+
+---
+
+### Blocking Can Fail!
+
+&lt;img src="figs/unnamed-chunk-10-1.png" width="792" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+### Locality Sensitive Hash (Min Hashing) Approach
+
+
+.border[
+&lt;img src="figs/unnamed-chunk-11-1.png" width="792" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+### How Does a Locality Sensitve Hash Work?
+
+* Split observations into blocks to compare within
+* Similar strings should have a very high chance of being compared.
+* Minimize the chance that dissimiar strings are compared.
+
+### Notion of Similarity - Jaccard Similarity:
+
+`$$sim(\mathcal{A}, \mathcal{B}) = \frac{|\mathcal{A} \cap \mathcal{B}|}{|\mathcal{A} \cup \mathcal{B}|}$$`
+
+---
+
+### Minhashing
+
+##### Step 1: Split String into n-grams:
+
+`$$\textrm{Beniamino Green} \to \{ \textrm{Be}, \textrm{en}, \textrm{ni}, \textrm{ia}, \textrm{am}, \textrm{mi}, \dots \}$$`
+
+##### Step 2: Create random ordering of all tokens, sort set (several times):
+
+`$$\textrm{order}_1(\textrm{Beniamino Green})= \{ \textrm{no}, \textrm{ee}, \textrm{og}, \textrm{en}, \dots \}$$`
+
+`$$\textrm{order}_2(\textrm{Beniamino Green})= \{ \textrm{in}, \textrm{am}, \textrm{re}, \textrm{no}, \dots \}$$`
+
+`$$\textrm{order}_3(\textrm{Beniamino Green})= \{ \textrm{Be}, \textrm{gr}, \textrm{ni}, \textrm{ee}, \dots \}$$`
+
+---
+
+### Minhashing
+
+##### Step 2: Create random ordering of all tokens, sort set:
+
+`$$\textrm{order}_1(\textrm{Beniamino Green})= \{ \textrm{no}, \textrm{ee}, \textrm{og}, \textrm{en}, \dots \}$$`
+
+`$$\textrm{order}_2(\textrm{Beniamino Green})= \{ \textrm{in}, \textrm{am}, \textrm{re}, \textrm{no}, \dots \}$$`
+
+`$$\textrm{order}_3(\textrm{Beniamino Green})= \{ \textrm{Be}, \textrm{gr}, \textrm{ni}, \textrm{ee}, \dots \}$$`
+
+##### Step 3: Take first item of each set, use this to create hash key:
+
+$$ \textrm{no} \quad \textrm{in} \quad  \textrm{be} \to \textrm{noinbe} $$
+
+---
+
+### Minhashing
+
+##### Step 3: Take first item of each set, use this to create hash key:
+
+$$ \textrm{no} \quad \textrm{in} \quad  \textrm{be} \to \textrm{noinbe} $$
+
+##### Step 4: Check all items with same hash key for matches
+
+`$$lsh_1(\textrm{Beniamino Green}) = \textrm{noinbe}$$`
+
+`$$lsh_1(\textrm{Benjamino Greene}) = \textrm{noinbe}$$`
+
+`$$lsh_1(\textrm{Lucas Marron}) = \textrm{luroas}$$`
+
+##### Step 5: Repeat many times
+
+---
+
+### Why Does This Work?
+
+* Probability that two strings share the same first item is equal to their
+  jaccard similarity Leskovec, Rajaraman, and Ullman (2014)
+
+
+$$
+P[\min_i(\mathcal{A}) = \min_i(\mathcal{B})] = Sim(\mathcal{A},\mathcal{B})
+$$
+
+
+`$$\textrm{Beniamino Green} \to \{ \textrm{Be}, \textrm{en}, \textrm{ni}, \textrm{ia}, \textrm{am}, \textrm{mi}, \dots \}$$`
+
+
+`$$\textrm{Benjamino Greene} \to \{ \textrm{Be}, \textrm{en}, \textrm{nj}, \textrm{ja}, \textrm{am}, \textrm{mi}, \dots \}$$`
+
+* A single minhash is an LSH, but not a good one.
+* Combining many min hashes gives good performance.
+
+---
+
+### Why Does This Work?
+
+
+```r
+zoomerjoin::lsh_curve(n_bands = 1, band_width = 1)
+```
+
+&lt;img src="figs/unnamed-chunk-12-1.png" width="792" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Why Does This Work?
+
+
+```r
+zoomerjoin::lsh_curve(n_bands = 1, band_width = 2)
+```
+
+&lt;img src="figs/unnamed-chunk-13-1.png" width="792" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Why Does This Work?
+
+
+```r
+zoomerjoin::lsh_curve(n_bands = 3, band_width = 3)
+```
+
+&lt;img src="figs/unnamed-chunk-14-1.png" width="792" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Why Does This Work?
+
+
+```r
+zoomerjoin::lsh_curve(n_bands = 5, band_width = 5)
+```
+
+&lt;img src="figs/unnamed-chunk-15-1.png" width="792" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Why Does This Work?
+
+
+```r
+zoomerjoin::lsh_curve(n_bands = 15, band_width = 7)
+```
+
+&lt;img src="figs/unnamed-chunk-16-1.png" width="792" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Why Does This Work?
+
+
+```r
+zoomerjoin::lsh_curve(n_bands = 50, band_width = 8)
+```
+
+&lt;img src="figs/unnamed-chunk-17-1.png" width="792" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Speed Test:
+
+.border[
+&lt;img src="figs/unnamed-chunk-18-1.png" width="792" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+### Speed Test:
+
+.border[
+&lt;img src="figs/unnamed-chunk-19-1.png" width="792" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+### Speed Test:
+
+* On a powerful computer, this can match the entire U.S. voter file to itself in 3 hours!
+
+* Guarantee that no more than .01% of pairs with similarity greater than .8 are discarded.
+
+---
+
+### Try it today!
+
+.center[&lt;img src="screenshot.png"&gt;]
+
+---
+
+### Zoomerjoin Selling Points:
+
+.leftcol[
+* Core algorithm and datastructures are written in Rust for speed
+
+* Optimized to keep memory use low
+
+* Parallelized for use on larger machines
+]
+.rightcol[
+&lt;img src="logo.png"&gt;
+]
+
+
+---
+
+### Zoomerjoin Selling Points:
+
+.leftcol[
+* Offers a dplyr-style API for ease-of-use
+
+* Provides blocking as a special case
+
+* Can be used as pre-processing for matching with ML
+]
+.rightcol[
+&lt;img src="logo.png"&gt;
+]
+
+
+---
+
+### Zoomerjoin Usage
+
+
+```r
+library(zoomerjoin)
+
+out &lt;- lsh_inner_join(df_a, df_b,
+                      by = "name_1",band_width = 2,
+                      threshold=.3)
+out
+```
+
+```
+#&gt; # A tibble: 3 × 2
+#&gt;   name_1.x        name_1.y        
+#&gt;   &lt;chr&gt;           &lt;chr&gt;           
+#&gt; 1 Lucas Marron    Luca Marron     
+#&gt; 2 Florian Caro    Folrian Claro   
+#&gt; 3 Beniamino Green Benjamino Greene
+```
+
+---
+
+### Zoomerjoin Usage
+
+
+
+#### Subset of Bonica (2016) DIME database (n = 500,000)
+
+
+```r
+start_time &lt;- Sys.time()
+join_out &lt;- lsh_inner_join(corpus_1, corpus_2,
+                           n_gram_width=6, n_bands=20,
+                           band_width=6)
+print(Sys.time() - start_time)
+```
+
+```
+#&gt; Time difference of 10.3301 secs
+```
+
+---
+
+#### Subset of Bonica (2016) DIME database (n = 500,000)
+
+
+
+
+
+```r
+head(join_out,7) %&gt;%
+    filter(!grepl("[0-9]", field.x)) %&gt;% # Exclude fields with numbers
+    mutate(across(where(is.character), ~substr(.x,1,19)))
+```
+
+```
+#&gt; # A tibble: 3 × 4
+#&gt;        a field.x                   b field.y            
+#&gt;    &lt;dbl&gt; &lt;chr&gt;                 &lt;dbl&gt; &lt;chr&gt;              
+#&gt; 1 411314 waller equity manag  996687 aller equity manage
+#&gt; 2 140716 loyd gosselink blev 1267160 lloyd gosselink ble
+#&gt; 3  54779 california healthca  857701 ca healthcare assoc
+```
+
+---
+
+---
+
+# References
+
+Broder, A. (1997). "On the resemblance and containment of documents".
+In: _Proceedings. Compression and Complexity of SEQUENCES 1997 (Cat.
+No.97TB100171)_. IEEE Comput. Soc. DOI:
+[10.1109/sequen.1997.666900](https://doi.org/10.1109%2Fsequen.1997.666900).
+URL: [https://doi.org/10.1109
+
+Leskovec, J., A. Rajaraman, and J. D. Ullman (2014). _Mining of Massive
+Datasets_. 2nd ed. Cambridge University Press. DOI:
+[10.1017/CBO9781139924801](https://doi.org/10.1017%2FCBO9781139924801).
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "4:3"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
